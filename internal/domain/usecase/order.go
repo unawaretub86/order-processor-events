@@ -55,9 +55,17 @@ func (useCase useCase) sendSQS(totalPrice int64, orderID, requestId string) erro
 		return err
 	}
 
+	messageAttributes := map[string]*sqs.MessageAttributeValue{
+		"Source": {
+			DataType:    aws.String("String"),
+			StringValue: aws.String("order-processor-events"),
+		},
+	}
+
 	_, err = sqsClient.SendMessage(&sqs.SendMessageInput{
-		MessageBody: aws.String(string(orderJSON)),
-		QueueUrl:    &queueURL,
+		MessageBody:       aws.String(string(orderJSON)),
+		QueueUrl:          &queueURL,
+		MessageAttributes: messageAttributes,
 	})
 
 	if err != nil {
