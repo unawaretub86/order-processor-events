@@ -5,7 +5,11 @@ import (
 
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-lambda-go/lambdacontext"
+	"github.com/aws/aws-sdk-go/aws/session"
+	"github.com/aws/aws-sdk-go/service/dynamodb"
 
+	"github.com/unawaretub86/order-processor-events/internal/domain/repository"
+	"github.com/unawaretub86/order-processor-events/internal/domain/repository/database"
 	"github.com/unawaretub86/order-processor-events/internal/domain/usecase"
 )
 
@@ -20,7 +24,21 @@ func HandleSQSMessage(ctx context.Context, sqsEvent events.SQSEvent) error {
 		messageBody = record.Body
 	}
 
-	useHandler := usecase.NewUseOrder()
+	databaseInstance := createDatabaseInstance()
 
-	return useHandler.CreateOrder(messageBody, requestId)
+	repoInstance := repository.NewRepository(databaseInstance)
+
+	useCaseInstance := usecase.NewUseOrder(repoInstance)
+
+	_, err := useCaseInstance.CreateOrder(messageBody, requestId)
+
+	return err
+}
+
+func createDatabaseInstance() database.Database {
+	sess := session.Must(session.NewSessionWithOptions(session.Options{
+		SharedConfigState: session.SharedConfigEnable,
+	}))
+	dynamodbClient := dynamodb.New(sess)
+	return database.NewDataBase(dynamodbClient)
 }

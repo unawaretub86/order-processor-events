@@ -1,10 +1,13 @@
 package repository
 
-import "github.com/unawaretub86/order-processor-events/internal/domain/repository/database"
+import (
+	"github.com/unawaretub86/order-processor-events/internal/domain/entities"
+	"github.com/unawaretub86/order-processor-events/internal/domain/repository/database"
+)
 
 type (
 	RepositoryOrder interface {
-		CreateOrder(body, requestId string) error
+		CreateOrder(*entities.OrderRequest, string) (*string, error)
 	}
 
 	repositoryOrder struct {
@@ -12,7 +15,7 @@ type (
 	}
 )
 
-func NewDataBase(database database.Database) RepositoryOrder {
+func NewRepository(database database.Database) RepositoryOrder {
 	return &repositoryOrder{
 		database: database,
 	}

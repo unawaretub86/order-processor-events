@@ -1,5 +1,7 @@
 package repository
 
-func (repositoryOrder repositoryOrder) CreateOrder(body, requestId string) error {
+import "github.com/unawaretub86/order-processor-events/internal/domain/entities"
+
+func (repositoryOrder repositoryOrder) CreateOrder(body *entities.OrderRequest, requestId string) (*string, error) {
 	return repositoryOrder.database.CreateOrder(body, requestId)
 }
