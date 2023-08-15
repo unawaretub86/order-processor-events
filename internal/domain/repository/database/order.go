@@ -39,7 +39,7 @@ func (d *databaseOrder) CreateOrder(body *entities.OrderRequest, requestId strin
 }
 
 func (d *databaseOrder) UpdateOrder(orderId, requestId string) error {
-	paid := "PAID"
+	status := "ready for shipping"
 
 	input := &dynamodb.UpdateItemInput{
 		ExpressionAttributeNames: map[string]*string{
@@ -47,7 +47,7 @@ func (d *databaseOrder) UpdateOrder(orderId, requestId string) error {
 		},
 		ExpressionAttributeValues: map[string]*dynamodb.AttributeValue{
 			":y": {
-				S: aws.String(paid),
+				S: aws.String(status),
 			},
 		},
 		TableName: aws.String(d.table),
