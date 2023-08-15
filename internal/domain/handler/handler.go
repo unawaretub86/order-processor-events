@@ -50,6 +50,8 @@ func getSQSInfo(sqsEvent events.SQSEvent) (string, string) {
 
 		sourceAttr := record.MessageAttributes["Source"]
 
+		fmt.Println(sourceAttr)
+
 		source = *sourceAttr.StringValue
 	}
 
