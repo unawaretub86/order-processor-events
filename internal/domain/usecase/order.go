@@ -24,20 +24,15 @@ func (useCase useCase) CreateOrder(body, requestId string) (*string, error) {
 		return nil, err
 	}
 
-	useCase.sendSQS(*&order.TotalPrice, *orderId, requestId)
+	if err = useCase.sendSQS(order.TotalPrice, *orderId, requestId); err != nil {
+		return nil, err
+	}
 
 	return orderId, nil
 }
 
-func convertToStruct(body, requestId string) (*entities.OrderRequest, error) {
-	var orderRequest entities.OrderRequest
-	err := json.Unmarshal([]byte(body), &orderRequest)
-	if err != nil {
-		fmt.Printf("[RequestId: %s][Error marshaling API Gateway request: %v]", err, requestId)
-		return nil, err
-	}
-
-	return &orderRequest, nil
+func (useCase useCase) UpdateOrder(orderId, requestId string) error {
+	return useCase.repositoryOrder.UpdateOrder(orderId, requestId)
 }
 
 func (useCase useCase) sendSQS(totalPrice int64, orderID, requestId string) error {
@@ -71,4 +66,15 @@ func (useCase useCase) sendSQS(totalPrice int64, orderID, requestId string) erro
 	}
 
 	return nil
+}
+
+func convertToStruct(body, requestId string) (*entities.OrderRequest, error) {
+	var orderRequest entities.OrderRequest
+	err := json.Unmarshal([]byte(body), &orderRequest)
+	if err != nil {
+		fmt.Printf("[RequestId: %s][Error marshaling API Gateway request: %v]", err, requestId)
+		return nil, err
+	}
+
+	return &orderRequest, nil
 }

@@ -9,6 +9,7 @@ import (
 type (
 	UseCase interface {
 		CreateOrder(string, string) (*string, error)
+		UpdateOrder(string, string) error
 	}
 
 	useCase struct {

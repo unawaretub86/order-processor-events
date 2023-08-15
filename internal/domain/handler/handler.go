@@ -2,6 +2,7 @@ package handler
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-lambda-go/lambdacontext"
@@ -13,16 +14,14 @@ import (
 	"github.com/unawaretub86/order-processor-events/internal/domain/usecase"
 )
 
+const sqsName = "payments-events-processor"
+
 func HandleSQSMessage(ctx context.Context, sqsEvent events.SQSEvent) error {
 	lc, _ := lambdacontext.FromContext(ctx)
 
 	requestId := lc.AwsRequestID
 
-	var messageBody string
-
-	for _, record := range sqsEvent.Records {
-		messageBody = record.Body
-	}
+	messageBody, source := getSQSInfo(sqsEvent)
 
 	databaseInstance := createDatabaseInstance()
 
@@ -30,9 +29,31 @@ func HandleSQSMessage(ctx context.Context, sqsEvent events.SQSEvent) error {
 
 	useCaseInstance := usecase.NewUseOrder(repoInstance)
 
+	if source == sqsName {
+		if err := useCaseInstance.UpdateOrder(messageBody, requestId); err != nil {
+			fmt.Printf("[RequestId: %s], [Error: %v]", requestId, err)
+			return err
+		}
+	}
+
 	_, err := useCaseInstance.CreateOrder(messageBody, requestId)
 
 	return err
+}
+
+func getSQSInfo(sqsEvent events.SQSEvent) (string, string) {
+	var messageBody string
+	var source string
+
+	for _, record := range sqsEvent.Records {
+		messageBody = record.Body
+
+		sourceAttr := record.MessageAttributes["Source"]
+
+		source = *sourceAttr.StringValue
+	}
+
+	return messageBody, source
 }
 
 func createDatabaseInstance() database.Database {

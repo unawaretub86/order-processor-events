@@ -9,6 +9,7 @@ import (
 type (
 	Database interface {
 		CreateOrder(*entities.OrderRequest, string) (*string, error)
+		UpdateOrder(string, string) error
 	}
 
 	databaseOrder struct {

@@ -8,6 +8,7 @@ import (
 type (
 	RepositoryOrder interface {
 		CreateOrder(*entities.OrderRequest, string) (*string, error)
+		UpdateOrder(string, string) error
 	}
 
 	repositoryOrder struct {
