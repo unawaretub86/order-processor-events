@@ -1,0 +1,50 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: 'AWS::Serverless-2016-10-31'
+
+Resources:
+  OrderSQS:
+    Type: 'AWS::SQS::Queue'
+    Properties:
+      QueueName: orderSQS
+
+  OrdersPaymentsSQS:
+    Type: 'AWS::SQS::Queue'
+    Properties:
+      QueueName: ordersPaymentsSQS
+
+  OrderProcessor:
+    Type: 'AWS::Serverless::Function'
+    Properties:
+      FunctionName: OrderProcessor
+      Handler: main
+      Runtime: go1.x 
+      Policies:
+        - AWSLambdaSQSQueueExecutionRole
+      Environment:
+        Variables:
+          QUEUE_URL: !GetAtt OrderSQS.QueueUrl
+
+  OrdersProcessorEvents:
+    Type: 'AWS::Serverless::Function'
+    Properties:
+      FunctionName: OrdersProcessorEvents
+      Handler: main 
+      Runtime: go1.x
+      CodeUri: cmd/api/main.go 
+      Policies:
+        - SQSPollerPolicy:
+            QueueName: !Ref OrdersPaymentsSQS
+
+  OrdersTable:
+    Type: 'AWS::DynamoDB::Table'
+    Properties:
+      TableName: orders
+      AttributeDefinitions:
+        - AttributeName: orderId
+          AttributeType: S
+      KeySchema:
+        - AttributeName: orderId
+          KeyType: HASH
+      ProvisionedThroughput:
+        ReadCapacityUnits: 5
+        WriteCapacityUnits: 5
